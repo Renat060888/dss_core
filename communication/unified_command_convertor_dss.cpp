@@ -1,0 +1,24 @@
+
+#include "unified_command_convertor_dss.h"
+
+using namespace std;
+
+UnifiedCommandConvertorDSS::UnifiedCommandConvertorDSS()
+{
+
+}
+
+std::string UnifiedCommandConvertorDSS::getCommandsFromProgramArgs( const std::map<common_types::TCommandLineArgKey, common_types::TCommandLineArgVal> & _args ){
+
+}
+
+std::string UnifiedCommandConvertorDSS::getCommandsFromConfigFile( const std::string & _commands ){
+
+}
+
+std::string UnifiedCommandConvertorDSS::getCommandsFromHTTPRequest( const std::string & _httpMethod,
+                                        const std::string & _uri,
+                                        const std::string & _queryString,
+                                        const std::string & _body ){
+
+}
