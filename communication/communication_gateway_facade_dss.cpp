@@ -1,6 +1,7 @@
 
 #include <microservice_common/common/ms_common_utils.h>
 #include <microservice_common/communication/amqp_client_c.h>
+#include <dss_common/system/config_reader.h>
 
 #include "communication_gateway_facade_dss.h"
 #include "command_factory.h"
@@ -26,9 +27,15 @@ bool CommunicationGatewayFacadeDSS::init( const SInitSettings & _settings ){
 
     m_settings = _settings;
     m_settings.paramsForInitialAmqp.route = initialRoute;
+    m_settings.paramsForInitialAmqp.enable = CONFIG_PARAMS.COMMUNICATION_AMQP_ENABLE;
+    m_settings.paramsForInitialAmqp.host = CONFIG_PARAMS.COMMUNICATION_AMQP_SERVER_HOST;
+    m_settings.paramsForInitialAmqp.virtHost = CONFIG_PARAMS.COMMUNICATION_AMQP_VIRTUAL_HOST;
+    m_settings.paramsForInitialAmqp.port = CONFIG_PARAMS.COMMUNICATION_AMQP_SERVER_PORT;
+    m_settings.paramsForInitialAmqp.login = CONFIG_PARAMS.COMMUNICATION_AMQP_LOGIN;
+    m_settings.paramsForInitialAmqp.pass = CONFIG_PARAMS.COMMUNICATION_AMQP_PASS;
     m_settings.specParams.factory = new CommandFactory( m_settings.services );
 
-    if( ! CommunicationGatewayFacade::init(_settings) ){
+    if( ! CommunicationGatewayFacade::init(m_settings) ){
         return false;
     }
 
@@ -212,6 +219,7 @@ PNetworkClient CommunicationGatewayFacadeDSS::getUserCommunicator( const std::st
     m_userCommunicatorsById.insert( {_uniqueId, controller} );
     return controller;
 }
+
 
 
 

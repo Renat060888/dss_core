@@ -53,29 +53,20 @@ bool DistributedSimulationSystem::init( const SInitSettings & _settings ){
 
     VS_LOG_INFO << PRINT_HEADER << " ============================ START INIT ========================" << endl;
 
-    // delete previous resources
     PATH_LOCATOR.removePreviousSessionSocketFiles();
 
-    // show stat
     const SystemMonitor::STotalInfo info = SYSTEM_MONITOR.getTotalSnapshot();
     SYSTEM_MONITOR.printOnScreen( info );
 
-    // TODO: may be inside to SystemEnvironment as service ?
-    WriteAheadLogger walForRestore;
-    if( ! CONFIG_PARAMS.SYSTEM_RESTORE_INTERRUPTED_SESSION ){
-        walForRestore.cleanJournal();
-    }
-
     SystemEnvironment::SInitSettings settings0;
     settings0.services;
-    settings0.zombieChildProcesses = walForRestore.getNonClosedProcesses();
     if( ! m_systemEnvironment->init(settings0) ){
         return false;
     }
 
     CommunicationGatewayFacadeDSS::SInitSettings settings1;
     settings1.requestsFromConfig = CONFIG_PARAMS.INITIAL_REQUESTS;
-    settings1.requestsFromWAL = walForRestore.getInterruptedOperations();
+    settings1.requestsFromWAL = m_systemEnvironment->serviceForWriteAheadLogging()->getInterruptedOperations();
     settings1.asyncNetwork = true;
     settings1.services = m_commandServices;
     if( ! m_communicateGateway->init(settings1) ){
@@ -105,12 +96,11 @@ bool DistributedSimulationSystem::init( const SInitSettings & _settings ){
     m_unixInterruptSignal.connect( boost::bind( & DistributedSimulationSystem::shutdownByUnixInterruptSignal, this) );
     common_utils::connectInterruptSignalHandler( ( common_utils::TSignalHandlerFunction ) & DistributedSimulationSystem::callbackUnixInterruptSignal );
 
-    // self shutdown by timer
     checkForSelfShutdown();
 
     // NOTE: если инициализация прошла успешно, то история прерванных операций окончательно очищается,
-    // а их возобновление начнется с выборкой команд в VideoServer::launch()
-    walForRestore.cleanJournal();
+    // а их возобновление начнется с выборкой команд в DistributedSimulationSystem::launch()
+    m_systemEnvironment->serviceForWriteAheadLogging()->cleanJournal();
 
     VS_LOG_INFO << PRINT_HEADER << " ============================ INIT SUCCESS ============================" << endl;
     return true;
@@ -128,6 +118,9 @@ void DistributedSimulationSystem::launch(){
             PCommand command = m_communicateGateway->nextIncomingCommand();
             command->exec();
         }
+
+        // TODO: may be throught CV ?
+        std::this_thread::sleep_for( std::chrono::milliseconds(10) );
     }
 }
 

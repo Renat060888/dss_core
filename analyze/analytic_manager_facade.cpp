@@ -10,6 +10,10 @@ AnalyticManagerFacade::AnalyticManagerFacade()
 
 bool AnalyticManagerFacade::init( const SInitSettings & _settings ){
 
+
+
+
+    return true;
 }
 
 void AnalyticManagerFacade::shutdown(){

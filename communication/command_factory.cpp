@@ -4,6 +4,7 @@
 
 #include <boost/property_tree/json_parser.hpp>
 #include <microservice_common/system/logger.h>
+#include <microservice_common/common/ms_common_utils.h>
 #include <dss_common/common/common_vars.h>
 
 #include "command_factory.h"
@@ -25,7 +26,7 @@ CommandFactory::CommandFactory( common_types::SIncomingCommandServices & _comman
 PCommand CommandFactory::createCommand( PEnvironmentRequest _request ){
 
     {
-        VS_LOG_DBG << PRINT_HEADER << " incoming msg [" << _request->getIncomingMessage() << "]" << endl;
+//        VS_LOG_DBG << PRINT_HEADER << common_utils::getCurrentDateTimeStr() << " incoming msg [" << _request->getIncomingMessage() << "]" << endl;
 
         if( _request->getIncomingMessage().empty() ){
             sendFailToExternal( _request, "I don't see the command (-_-)" );
@@ -95,50 +96,6 @@ PCommand CommandFactory::createCommand( PEnvironmentRequest _request ){
         cmd->m_request = _request;
         return cmd;
     }
-
-    VS_LOG_DBG << PRINT_HEADER << " incoming msg [" << _request->getIncomingMessage() << "]" << endl;
-
-    PCommand cmd;
-
-    if( _request->getIncomingMessage().empty() ){
-        sendFailToExternal( _request, "I don't see the command (-_-)" );
-        return nullptr;
-    }
-
-//    cmd = messageFromInternalModule( _request );
-    if( cmd ){
-        cmd->m_request = _request;
-        return cmd;
-    }
-
-    Json::Reader reader;
-    Json::Value parsedRecord;
-    if( ! reader.parse( _request->getIncomingMessage().c_str(), parsedRecord, false ) ){
-       VS_LOG_ERROR << "CommandFactory: parse failed of [1] Reason: [2] ["
-                 << _request->getIncomingMessage() << "] ["
-                 << reader.getFormattedErrorMessages()  << "]"
-                 << endl;
-
-        sendFailToExternal( _request, "I can't parse the command (-_-)" );
-        return nullptr;
-    }
-
-    // -------------------------------------------------------------------------------------
-    // source commands
-    // -------------------------------------------------------------------------------------
-    if( "source" == parsedRecord[ common_vars::cmd::COMMAND_TYPE ].asString() ){
-
-
-
-    }
-    else{
-        VS_LOG_WARN << "unknown command type [" << parsedRecord[ common_vars::cmd::COMMAND_TYPE ].asString() << "]" << endl;
-        sendFailToExternal( _request, "I don't know such command type (-_-)" );
-        return nullptr;
-    }
-
-    cmd->m_request = _request;
-    return cmd;
 }
 
 void CommandFactory::sendFailToExternal( PEnvironmentRequest _request, const string _msg ){

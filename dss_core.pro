@@ -28,7 +28,10 @@ LIBS += \
 
 # NOTE: paths for dev environment ( all projects sources in one dir )
 INCLUDEPATH +=  \
-    $${ROOT_DIR}/microservice_common/ \
+    /usr/include/libmongoc-1.0 \
+    /usr/include/libbson-1.0 \
+    $${ROOT_DIR}/microservice_common/ \ # TODO: avoidance of ugly traverse "../" for this lib's headers
+    $${ROOT_DIR}/dss_common/ \ # TODO: avoidance of ugly traverse "../" for this lib's headers
 
 SOURCES += \
         analyze/analytic_manager_facade.cpp \

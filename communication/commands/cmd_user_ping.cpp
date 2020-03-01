@@ -11,9 +11,8 @@ CommandUserPing::CommandUserPing( common_types::SIncomingCommandServices * _serv
 
 bool CommandUserPing::exec(){
 
-
-
-
+    const string resp = "{ \"bla\" : \"ble\" }";
+    sendResponse( resp  );
 
     return true;
 }

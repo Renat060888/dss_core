@@ -48,6 +48,8 @@ PNodeMirror NodeDispatcherReal::getNode( const SNodeRequestForm & _form ){
 
 std::vector<PNodeMirror> NodeDispatcherReal::getNodes(){
 
+
+    return std::vector<PNodeMirror>();
 }
 
 void NodeDispatcherReal::releaseNode( PNodeMirror _nodeMirror ){
