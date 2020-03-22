@@ -52,7 +52,7 @@ SOURCES += \
         datasource/node_mirror_real.cpp \
         datasource/node_mirror_simulation.cpp \
         datasource/realtime_synchronizer.cpp \
-        datasource/source_manager.cpp \
+        datasource/source_manager_facade.cpp \
         datasource/user.cpp \
         datasource/user_dispatcher.cpp \
         datasource/visitor_node_configurator.cpp \
@@ -79,7 +79,7 @@ HEADERS += \
     datasource/node_mirror_real.h \
     datasource/node_mirror_simulation.h \
     datasource/realtime_synchronizer.h \
-    datasource/source_manager.h \
+    datasource/source_manager_facade.h \
     datasource/user.h \
     datasource/user_dispatcher.h \
     datasource/visitor_node_configurator.h \

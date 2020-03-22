@@ -26,7 +26,7 @@ static bool initSingletons( int _argc, char ** _argv, char ** _env ){
 
     // configs
     ConfigReader::SIninSettings settings3;
-    settings3.mainConfigPath = ARGS_PARSER.getVal(EDssArguments::MAIN_CONFIG_PATH_FROM_CONSOLE);
+    settings3.mainConfigPath = ARGS_PARSER.getVal(EPlayerArguments::MAIN_CONFIG_PATH_FROM_CONSOLE);
     settings3.commandConvertor = & UNIFIED_COMMAND_CONVERTOR;
     settings3.env = _env;
     settings3.projectName = "dss";
@@ -75,10 +75,10 @@ static void parseResponse( const std::string & _msg ){
 
 static bool executeShellCommand(){
 
-    if( ! ARGS_PARSER.getVal(EDssArguments::SHELL_COMMAND_START_SERVER).empty() ){
+    if( ! ARGS_PARSER.getVal(EPlayerArguments::SHELL_COMMAND_START_SERVER).empty() ){
 
         // deamonize
-        if( ! ARGS_PARSER.getVal(EDssArguments::AS_DAEMON).empty() ){
+        if( ! ARGS_PARSER.getVal(EPlayerArguments::AS_DAEMON).empty() ){
             if( ! Daemonizator::turnIntoDaemon() ){
                 return false;
             }
@@ -109,7 +109,7 @@ static bool executeShellCommand(){
             }
         }
     }
-    else if( ! ARGS_PARSER.getVal(EDssArguments::SHELL_COMMAND_TO_SERVER).empty() ){
+    else if( ! ARGS_PARSER.getVal(EPlayerArguments::SHELL_COMMAND_TO_SERVER).empty() ){
 
         // reinit logger for client side
         logger_common::SInitSettings settings;
@@ -128,9 +128,12 @@ static bool executeShellCommand(){
         }
 
         // send message to server
-        const string message =  ARGS_PARSER.getVal(EDssArguments::SHELL_COMMAND_TO_SERVER);
+        const string message =  ARGS_PARSER.getVal(EPlayerArguments::SHELL_COMMAND_TO_SERVER);
         const string response = shell.makeBlockedRequest( message );
         parseResponse( response );
+    }
+    else{
+        assert( false );
     }
 
     return true;

@@ -5,11 +5,11 @@
 #include <future>
 
 #include <boost/signals2.hpp>
+#include <microservice_common/system/system_environment.h>
 #include <dss_common/common/common_types.h>
-#include <dss_common/system/system_environment.h>
 
 #include "communication/communication_gateway_facade_dss.h"
-#include "datasource/source_manager.h"
+#include "datasource/source_manager_facade.h"
 #include "storage/storage_engine_facade.h"
 #include "analyze/analytic_manager_facade.h"
 

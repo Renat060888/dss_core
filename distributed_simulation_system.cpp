@@ -60,6 +60,10 @@ bool DistributedSimulationSystem::init( const SInitSettings & _settings ){
 
     SystemEnvironment::SInitSettings settings0;
     settings0.services;
+    settings0.databaseHost = CONFIG_PARAMS.MONGO_DB_ADDRESS;
+    settings0.databaseName = CONFIG_PARAMS.MONGO_DB_NAME;
+    settings0.restoreSystemAfterInterrupt = CONFIG_PARAMS.SYSTEM_RESTORE_INTERRUPTED_SESSION;
+    settings0.uniqueLockFileFullPath = PATH_LOCATOR.getUniqueLockFile();
     if( ! m_systemEnvironment->init(settings0) ){
         return false;
     }
