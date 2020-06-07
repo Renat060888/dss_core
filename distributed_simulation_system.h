@@ -5,7 +5,7 @@
 #include <future>
 
 #include <boost/signals2.hpp>
-#include <microservice_common/system/system_environment.h>
+#include <microservice_common/system/system_environment_facade.h>
 #include <dss_common/common/common_types.h>
 
 #include "communication/communication_gateway_facade_dss.h"
@@ -52,7 +52,7 @@ private:
     SourceManagerFacade * m_sourceManager;
     AnalyticManagerFacade * m_analyticManager;
     StorageEngineFacade * m_storageEngine;
-    SystemEnvironment * m_systemEnvironment;
+    SystemEnvironmentFacade * m_systemEnvironment;
 };
 
 #endif // DISTRIBUTED_SIMULATION_SYSTEM_H

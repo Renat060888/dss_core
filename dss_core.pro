@@ -1,7 +1,7 @@
 ROOT_DIR=../
 
 TEMPLATE = app
-TARGET = distributed_simulation_system
+TARGET = dss_core
 
 include($${ROOT_DIR}pri/common.pri)
 
@@ -11,8 +11,9 @@ CONFIG -= qt
 QMAKE_CXXFLAGS += -Wno-unused-parameter
 QMAKE_CXXFLAGS += -Wno-unused-variable
 
+# TODO: add defines to logger, system monitor, restbed webserver, database, etc...
 DEFINES += \
-    SWITCH_LOGGER_SIMPLE \
+    SWITCH_LOGGER_ASTRA \
 
 LIBS += \
     -lpthread \
@@ -23,6 +24,8 @@ LIBS += \
     -lRTI-NG \      # OpenRTI # TODO: wtf?
     -lboost_program_options \ # TODO: wtf?
     -ljsoncpp \ # TODO: replace by boost one
+    -lunilog \  # TODO: wtf?
+    -lobjrepr \  # TODO: wtf?
     -lmicroservice_common \
     -ldss_common
 

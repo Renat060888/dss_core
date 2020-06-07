@@ -18,7 +18,7 @@ static bool initSingletons( int _argc, char ** _argv, char ** _env ){
     ArgsParser::SInitSettings settings;
     settings.argc = _argc;
     settings.argv = _argv;
-    settings.printConfigExample = std::bind( & AConfigReader::printToStdoutConfigExample, & CONFIG_READER );
+    settings.printConfigExample = std::bind( & AConfigReader::getConfigExample, & CONFIG_READER );
     settings.commandConvertor = & UNIFIED_COMMAND_CONVERTOR;
     if( ! ARGS_PARSER.init(settings) ){
         return false;
@@ -75,10 +75,10 @@ static void parseResponse( const std::string & _msg ){
 
 static bool executeShellCommand(){
 
-    if( ! ARGS_PARSER.getVal(EPlayerArguments::SHELL_COMMAND_START_SERVER).empty() ){
+    if( ARGS_PARSER.isKeyExist(EPlayerArguments::SHELL_COMMAND_START_SERVER) ){
 
         // deamonize
-        if( ! ARGS_PARSER.getVal(EPlayerArguments::AS_DAEMON).empty() ){
+        if( ARGS_PARSER.isKeyExist(EPlayerArguments::AS_DAEMON) ){
             if( ! Daemonizator::turnIntoDaemon() ){
                 return false;
             }
@@ -109,7 +109,7 @@ static bool executeShellCommand(){
             }
         }
     }
-    else if( ! ARGS_PARSER.getVal(EPlayerArguments::SHELL_COMMAND_TO_SERVER).empty() ){
+    else if( ARGS_PARSER.isKeyExist(EPlayerArguments::SHELL_COMMAND_TO_SERVER) ){
 
         // reinit logger for client side
         logger_common::SInitSettings settings;
