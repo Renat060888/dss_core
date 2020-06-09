@@ -1,9 +1,10 @@
 #ifndef NODE_SIMULATION_H
 #define NODE_SIMULATION_H
 
-#include "i_node_mirror.h"
+#include "i_node_worker_service.h"
+#include "node_agent_simulation_proxy.h"
 
-class NodeMirrorSimulation : public INodeMirror
+class NodeWorkerServiceSimula : public INodeMirror
 {
 public:
     struct SStateSimulation : INodeMirror::SState {
@@ -15,7 +16,7 @@ public:
 
     };
 
-    NodeMirrorSimulation();
+    NodeWorkerServiceSimula( NodeAgentSimulationProxy * _nodeAgent );
 
     const SStateSimulation & getState();
 
@@ -31,10 +32,14 @@ public:
 
 
 private:
+    // data
 
+
+    // service
+    NodeAgentSimulationProxy * m_nodeAgent;
 
 
 };
-using PNodeMirrorSimulation = std::shared_ptr<NodeMirrorSimulation>;
+using PNodeWorkerServiceSimula = std::shared_ptr<NodeWorkerServiceSimula>;
 
 #endif // NODE_SIMULATION_H

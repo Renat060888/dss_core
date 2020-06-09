@@ -148,46 +148,6 @@ PNetworkClient CommunicationGatewayFacadeDSS::getNodeWorkerCommunicator( const s
     return controller;
 }
 
-PNetworkClient CommunicationGatewayFacadeDSS::getPlayerAgentCommunicator(){
-
-    // TODO: ?
-
-
-    return nullptr;
-}
-
-PNetworkClient CommunicationGatewayFacadeDSS::getPlayerWorkerCommunicator( const std::string & _uniqueId ){
-
-    auto iter = m_playerWorkerCommunicatorsById.find( _uniqueId );
-    if( iter != m_playerWorkerCommunicatorsById.end() ){
-        return iter->second;
-    }
-
-    // core -> node agent
-    SAmqpRouteParameters route;
-    route.predatorExchangePointName = "dss_dx_core";
-    route.predatorQueueName = "dss_q_core_mailbox";
-    route.predatorRoutingKeyName = "dss_rk_to_core";
-    route.targetExchangePointName = "dss_dx_player_workers";
-    route.targetRoutingKeyName = "dss_rk_to_player_worker_" + _uniqueId;
-
-    PNetworkClient connection = CommunicationGatewayFacade::getInitialAmqpConnection();
-    PAmqpClient amqpClient = std::dynamic_pointer_cast<AmqpClient>( connection );
-
-    AmqpController::SInitSettings settings;
-    settings.client = amqpClient;
-    settings.route = route;
-
-    PAmqpController controller = std::make_shared<AmqpController>( CommunicationGatewayFacade::getConnectionId() );
-    if( ! controller->init( settings ) ){
-        m_lastError = controller->getState().lastError;
-        return nullptr;
-    }
-
-    m_playerWorkerCommunicatorsById.insert( {_uniqueId, controller} );
-    return controller;
-}
-
 PNetworkClient CommunicationGatewayFacadeDSS::getUserCommunicator( const std::string & _uniqueId ){
 
     auto iter = m_userCommunicatorsById.find( _uniqueId );

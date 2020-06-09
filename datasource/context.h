@@ -2,24 +2,26 @@
 #define CONTEXT_H
 
 #include <map>
+#include <thread>
 
 #include <dss_common/communication/rti/federate.h>
 
-#include "node_mirror_simulation.h"
-#include "node_mirror_real.h"
+#include "node_worker_service_simulation.h"
+#include "node_worker_service_real.h"
+#include "node_worker_service_dump.h"
 #include "realtime_synchronizer.h"
 
 
 class IEditableContext {
 public:
-    virtual bool addSimulaNodeMirror( PNodeMirrorSimulation _node ) = 0;
-    virtual bool addRealNodeMirror( PNodeMirrorReal _node ) = 0;
+    virtual bool addNodeWorkerServiceSimula( PNodeWorkerServiceSimula _node ) = 0;
+    virtual bool addNodeWorkerServiceReal( PNodeWorkerServiceReal _node ) = 0;
+    virtual void removeNodeWorkerService( const common_types::TNodeId & _id ) = 0;
 };
 using PEditableContext = std::shared_ptr<IEditableContext>;
 
 
-class Context : public INodeDispatcherObserver
-              , public IEditableContext
+class Context : public IEditableContext
 {
 public:
     struct SInitSettings {
@@ -34,49 +36,54 @@ public:
     struct SState {
         SState()
             : active(false)
-            , settings(nullptr)
+            , realTimeSync(false)
         {}
         bool active;
-        SInitSettings * settings;
-        std::string m_lastError;
+        bool realTimeSync;
+        SInitSettings settings;
+        std::string lastError;
     };
 
     Context();
+    ~Context();
 
     bool init( const SInitSettings & _settings );
     const SState & getState(){ return m_state; }
 
-    virtual bool addSimulaNodeMirror( PNodeMirrorSimulation _node ) override;
-    virtual bool addRealNodeMirror( PNodeMirrorReal _node ) override;
+    // ( for real time check, processing interval check, RTI sync launch / stop, etc )
+    void configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceSimula::SConfigSimulation & _conf );
+    void configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceReal::SConfigReal & _conf );
+    void configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceDump::SConfigDump & _conf );
+    void makeNodeStatic( const common_types::TNodeId & _id, bool _static );
+    void startNode( const common_types::TNodeId & _id );
+    void pauseNode( const common_types::TNodeId & _id );
+    void stopNode( const common_types::TNodeId & _id );
 
-    PNodeMirror getNode( const common_types::TNodeId & _id );
-    const std::vector<PNodeMirror> & getNodes(){ return m_nodes; }
+    void setLiveProcessing( bool _live );
 
     // for status response
-    const std::vector<PNodeMirrorSimulation> & getNodesSimula(){ return m_nodesSimula; }
-    const std::vector<PNodeMirrorReal> & getNodesReal(){ return m_nodesReal; }
-
-
+    const std::vector<PNodeWorkerServiceSimula> & getNodesSimula(){ return m_nodesSimula; }
+    const std::vector<PNodeWorkerServiceReal> & getNodesReal(){ return m_nodesReal; }
 
 
 private:    
-    virtual void callbackNodeDetected( const common_types::TNodeId & _id ) override;
-    virtual void callbackNodeDisappeared( const common_types::TNodeId & _id ) override;
+    virtual bool addNodeWorkerServiceSimula( PNodeWorkerServiceSimula _node ) override;
+    virtual bool addNodeWorkerServiceReal( PNodeWorkerServiceReal _node ) override;
+    virtual void removeNodeWorkerService( const common_types::TNodeId & _id ) override;
 
-
-
+    void threadRealTimeSync();
 
     // data
     SState m_state;
     std::vector<PNodeMirror> m_nodes;
     std::map<common_types::TNodeId, PNodeMirror> m_nodesById;
-    std::vector<PNodeMirrorSimulation> m_nodesSimula;
-    std::vector<PNodeMirrorReal> m_nodesReal;
+    std::vector<PNodeWorkerServiceSimula> m_nodesSimula;
+    std::vector<PNodeWorkerServiceReal> m_nodesReal;
 
 
     // service
     RealtimeSynchronizer m_realTimeSynchronizer;
-    // rti client
+    std::thread * m_trRealTimeSync;
 
 
 

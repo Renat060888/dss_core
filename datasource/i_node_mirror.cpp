@@ -1,5 +1,5 @@
 
-#include "i_node_mirror.h"
+#include "i_node_worker_service.h"
 
 using namespace std;
 

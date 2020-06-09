@@ -13,6 +13,8 @@ class UserDispatcher : public common_types::IServiceUserAuthorization
 public:
     UserDispatcher();
 
+    void runSystemClock();
+
     virtual void addObserver( common_types::IUserDispatcherObserver * _observer ) override;
     virtual void removeObserver( common_types::IUserDispatcherObserver * _observer ) override;
     virtual bool isRegistered( const common_types::TUserId & _userId ) override;

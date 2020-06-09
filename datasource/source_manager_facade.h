@@ -5,17 +5,18 @@
 #include <vector>
 #include <unordered_map>
 
-#include "node_dispatcher_simulation.h"
-#include "node_dispatcher_real.h"
-#include "node_dispatcher_dump.h"
-#include "user_dispatcher.h"
+#include "dispatcher_node_simulation.h"
+#include "dispatcher_node_real.h"
+#include "dispatcher_node_dump.h"
+#include "dispatcher_user.h"
 #include "context.h"
 
-// User <-> Context <-> NodeDispatcher <-> Node
+// User <-> Context <-> NodeWorkerService <- NodeDispatcher -> NodeAgentProxy
 
 // TODO: if server crashed - restore Users & Contexts. In order to client side don't have to know about failure
 
-class SourceManagerFacade : public common_types::IUserDispatcherObserver
+class SourceManagerFacade : public common_types::IUserDispatcherObserver,
+                            public INodeDispatcherObserver
 {
 public:
     struct SServiceLocator {
@@ -28,10 +29,9 @@ public:
         SServiceLocator services;
     };
 
-    // TODO: may be redundant ?
-    struct SContextUsers {
-        PContext context;
-        std::vector<PUser> users;
+    struct SState {
+        SInitSettings settings;
+        std::string lastError;
     };
 
     SourceManagerFacade();
@@ -39,44 +39,34 @@ public:
 
     bool init( const SInitSettings & _settings );
     void shutdown();
-    const std::string & getLastError(){ return m_lastError; }
+    const SState & getState(){ return m_state; }
 
     PContext getContext( common_types::TUserId _userId, common_types::TContextId _ctxId );
     void releaseContext( common_types::TUserId _userId, common_types::TContextId _ctxId );
 
 
 private:
-    virtual void callbackUserOnline( const common_types::TUserId & _id, bool _online ) override;
+    virtual void callbackUserOnline( const common_types::TUserId & _id, bool _online ) override;    
+    virtual void callbackNodeOnline( const common_types::TNodeId & _id, bool _online ) override;
 
     void threadMaintenance();
-
-    std::vector<common_types::TMissionId> getContextMission( common_types::TContextId _ctxId );
 
     void addRealNodesToContext( PEditableContext _ctx );
     void addSimulaNodesToContext( PEditableContext _ctx );
 
-
     // data
+    SState m_state;
     PContext m_limboContext;
     std::vector<PContext> m_contexts;
     std::unordered_map<common_types::TContextId, PContext> m_contextsById;
-    std::unordered_map<common_types::TContextId, SContextUsers> m_contextsUsers;
-
-    std::string m_lastError;
-    SInitSettings m_settings;
-
+    bool m_shutdownCalled;
 
     // service
-    NodeDispatcherSimulation m_nodeDispatcherSimula;
-    NodeDispatcherReal m_nodeDispatcherReal;
-    NodeDispatcherDump m_nodeDispatcherDump;
+    DispatcherNodeSimulation m_nodeDispatcherSimula;
+    DispatcherNodeReal m_nodeDispatcherReal;
+    DispatcherNodeDump m_nodeDispatcherDump;
     UserDispatcher m_userDispatcher;
-
     std::thread * m_threadMaintenance;
-
-
-
-
 };
 
 #endif // SOURCE_MANAGER_H

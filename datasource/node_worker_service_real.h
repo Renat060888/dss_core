@@ -1,9 +1,9 @@
 #ifndef NODE_REAL_H
 #define NODE_REAL_H
 
-#include "i_node_mirror.h"
+#include "i_node_worker_service.h"
 
-class NodeMirrorReal : public INodeMirror
+class NodeWorkerServiceReal : public INodeMirror
 {
 public:
     struct SStateReal : INodeMirror::SState {
@@ -15,7 +15,7 @@ public:
 
     };
 
-    NodeMirrorReal();
+    NodeWorkerServiceReal();
 
     const SStateReal & getState();
 
@@ -35,6 +35,6 @@ private:
 
 
 };
-using PNodeMirrorReal = std::shared_ptr<NodeMirrorReal>;
+using PNodeWorkerServiceReal = std::shared_ptr<NodeWorkerServiceReal>;
 
 #endif // NODE_REAL_H

@@ -1,10 +1,14 @@
 
-#include "user_dispatcher.h"
+#include "dispatcher_user.h"
 
 using namespace std;
 
 UserDispatcher::UserDispatcher()
 {
+
+}
+
+void UserDispatcher::runSystemClock(){
 
 }
 

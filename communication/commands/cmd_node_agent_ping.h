@@ -4,10 +4,10 @@
 #include <microservice_common/communication/i_command_external.h>
 #include <dss_common/common/common_types.h>
 
-class CommandNodePing : public ICommandExternal
+class CommandNodeAgentPing : public ICommandExternal
 {
 public:
-    CommandNodePing( common_types::SIncomingCommandServices * _services );
+    CommandNodeAgentPing( common_types::SIncomingCommandServices * _services );
 
     virtual bool exec() override;
 
@@ -17,6 +17,6 @@ private:
 
 
 };
-using PCommandNodePing = std::shared_ptr<CommandNodePing>;
+using PCommandNodeAgentPing = std::shared_ptr<CommandNodeAgentPing>;
 
 #endif // CMD_NODE_PING_H

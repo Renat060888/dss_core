@@ -1,18 +1,17 @@
-#ifndef NODE_DISPATCHER_SIMULATION_H
-#define NODE_DISPATCHER_SIMULATION_H
+#ifndef NODE_DISPATCHER_REAL_H
+#define NODE_DISPATCHER_REAL_H
 
 #include <vector>
 #include <map>
 
-#include "i_node_mirror.h"
+#include "i_node_worker_service.h"
 
-class NodeDispatcherSimulation
+class DispatcherNodeReal
 {
     friend class CommandNodePing;
 public:
     struct SNodeRequestForm {
-        int contextId;
-        int missionId;
+        std::string serviceName; // for example: FlightRadar24, MarineTraffic, OpenWeatherMap, etc...
     };
 
     struct SInitSettings {
@@ -24,37 +23,34 @@ public:
         std::string m_lastError;
     };
 
-    NodeDispatcherSimulation();
+    DispatcherNodeReal();
 
     bool init( const SInitSettings & _settings );
-    const SState & getState(){ return m_state; }
     void addObserver( INodeDispatcherObserver * _observer );
     void removeObserver( INodeDispatcherObserver * _observer );
     void runSystemClock();
+    const SState & getState(){ return m_state; }
 
-    bool createNode( const SNodeRequestForm & _form );
+    bool requestNode( const SNodeRequestForm & _form );
     PNodeMirror getNode( const common_types::TNodeId & _id );
     std::vector<PNodeMirror> getNodes();
-
     void releaseNode( PNodeMirror _nodeMirror );
-
 
 
 private:
     void updateNodeState( void * _state );
 
     // data
+    SState m_state;
     std::vector<PNodeMirror> m_nodes;
     std::map<common_types::TNodeId, PNodeMirror> m_nodesById;
     std::vector<INodeDispatcherObserver *> m_observers;
-    SState m_state;
 
 
     // service
 
 
 
-
 };
 
-#endif // NODE_DISPATCHER_SIMULATION_H
+#endif // NODE_DISPATCHER_REAL_H

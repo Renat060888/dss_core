@@ -1,9 +1,9 @@
 #ifndef NODE_DUMP_H
 #define NODE_DUMP_H
 
-#include "i_node_mirror.h"
+#include "i_node_worker_service.h"
 
-class NodeMirrorDump : public INodeMirror
+class NodeWorkerServiceDump : public INodeMirror
 {
 public:
     struct SStateDump : INodeMirror::SState {
@@ -15,7 +15,7 @@ public:
 
     };
 
-    NodeMirrorDump();
+    NodeWorkerServiceDump();
 
     const SStateDump & getState();
 
@@ -37,6 +37,6 @@ private:
 
 
 };
-using PNodeMirrorDump = std::shared_ptr<NodeMirrorDump>;
+using PNodeWorkerServiceDump = std::shared_ptr<NodeWorkerServiceDump>;
 
 #endif // NODE_DUMP_H

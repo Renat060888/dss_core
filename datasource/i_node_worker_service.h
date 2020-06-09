@@ -11,8 +11,7 @@ class INodeDispatcherObserver {
 public:
     virtual ~INodeDispatcherObserver(){}
 
-    virtual void callbackNodeDetected( const common_types::TNodeId & _id ) = 0;
-    virtual void callbackNodeDisappeared( const common_types::TNodeId & _id ) = 0;
+    virtual void callbackNodeOnline( const common_types::TNodeId & _id, bool _online ) = 0;
 };
 
 class INodeMirror
