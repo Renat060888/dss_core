@@ -2,9 +2,11 @@
 #define NODE_DISPATCHER_DUMP_H
 
 #include "i_node_worker_service.h"
+#include "node_worker_service_dump.h"
 
 class DispatcherNodeDump
 {
+    friend class CommandNodeAgentPing;
 public:
     struct SNodeRequestForm {
         int contextId;
@@ -23,9 +25,10 @@ public:
     DispatcherNodeDump();
 
     bool init( const SInitSettings & _settings );
-    void addObserver( INodeDispatcherObserver * _observer );
-    void removeObserver( INodeDispatcherObserver * _observer );
     void runSystemClock();
+
+    void addObserver( INodeDumpObserver * _observer );
+    void removeObserver( INodeDumpObserver * _observer );
 
     bool requestNode( const SNodeRequestForm & _form );
     PNodeMirror getNode( const common_types::TNodeId & _id );

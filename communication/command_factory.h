@@ -17,6 +17,10 @@ public:
 private:
     void sendFailToExternal( PEnvironmentRequest _request, const std::string _msg );
 
+    PCommand parseExternalRequest( const PEnvironmentRequest & _request );
+    PCommand parseInternalRequest( const PEnvironmentRequest & _request );
+
+
     common_types::SIncomingCommandServices & m_commandServices;
 };
 

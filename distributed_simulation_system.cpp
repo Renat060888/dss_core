@@ -1,12 +1,12 @@
 
-#include <microservice_common/common/ms_common_utils.h>
 #include <microservice_common/system/logger.h>
 #include <microservice_common/system/process_launcher.h>
 #include <microservice_common/system/wal.h>
 #include <microservice_common/system/system_monitor.h>
-#include <dss_common/system/config_reader.h>
-#include <dss_common/system/path_locator.h>
+#include <dss_common/common/common_utils.h>
 
+#include "system/config_reader.h"
+#include "system/path_locator.h"
 #include "distributed_simulation_system.h"
 
 using namespace std;
@@ -60,16 +60,16 @@ bool DistributedSimulationSystem::init( const SInitSettings & _settings ){
 
     SystemEnvironmentFacade::SInitSettings settings0;
     settings0.services;
-    settings0.databaseHost = CONFIG_PARAMS.MONGO_DB_ADDRESS;
-    settings0.databaseName = CONFIG_PARAMS.MONGO_DB_NAME;
-    settings0.restoreSystemAfterInterrupt = CONFIG_PARAMS.SYSTEM_RESTORE_INTERRUPTED_SESSION;
+    settings0.databaseHost = CONFIG_PARAMS.baseParams.MONGO_DB_ADDRESS;
+    settings0.databaseName = CONFIG_PARAMS.baseParams.MONGO_DB_NAME;
+    settings0.restoreSystemAfterInterrupt = CONFIG_PARAMS.baseParams.SYSTEM_RESTORE_INTERRUPTED_SESSION;
     settings0.uniqueLockFileFullPath = PATH_LOCATOR.getUniqueLockFile();
     if( ! m_systemEnvironment->init(settings0) ){
         return false;
     }
 
     CommunicationGatewayFacadeDSS::SInitSettings settings1;
-    settings1.requestsFromConfig = CONFIG_PARAMS.INITIAL_REQUESTS;
+    settings1.requestsFromConfig = CONFIG_PARAMS.baseParams.INITIAL_REQUESTS;
     settings1.requestsFromWAL = m_systemEnvironment->serviceForWriteAheadLogging()->getInterruptedOperations();
     settings1.asyncNetwork = true;
     settings1.services = m_commandServices;
@@ -130,15 +130,15 @@ void DistributedSimulationSystem::launch(){
 
 void DistributedSimulationSystem::checkForSelfShutdown(){
 
-    if( CONFIG_PARAMS.SYSTEM_SELF_SHUTDOWN_SEC != 0 ){
+    if( CONFIG_PARAMS.baseParams.SYSTEM_SELF_SHUTDOWN_SEC != 0 ){
         m_selfShutdownFuture = std::async( std::launch::async, [this](){
             VS_LOG_WARN << PRINT_HEADER
                         << " ------------------------------ (!) SELF-SHUTDOWN AFTER"
-                        << " [" << CONFIG_PARAMS.SYSTEM_SELF_SHUTDOWN_SEC << "] sec"
+                        << " [" << CONFIG_PARAMS.baseParams.SYSTEM_SELF_SHUTDOWN_SEC << "] sec"
                         << " (!) ------------------------------"
                      << endl;
 
-            std::this_thread::sleep_for( std::chrono::seconds(CONFIG_PARAMS.SYSTEM_SELF_SHUTDOWN_SEC) );
+            std::this_thread::sleep_for( std::chrono::seconds(CONFIG_PARAMS.baseParams.SYSTEM_SELF_SHUTDOWN_SEC) );
 
             VS_LOG_WARN << PRINT_HEADER
                         << " ------------------------------ (!) SELF-SHUTDOWN INITIATE (!) ------------------------------"
@@ -186,3 +186,9 @@ void DistributedSimulationSystem::callbackUnixInterruptSignal(){
     VS_LOG_INFO << PRINT_HEADER << " ============================ catched SIGINT, initiate shutdown ============================" << endl;
     m_unixInterruptSignal();
 }
+
+
+
+
+
+

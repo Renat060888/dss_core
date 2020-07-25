@@ -7,30 +7,9 @@
 #include <dss_common/common/common_types.h>
 #include <dss_common/common/common_vars.h>
 
-class INodeDispatcherObserver {
-public:
-    virtual ~INodeDispatcherObserver(){}
-
-    virtual void callbackNodeOnline( const common_types::TNodeId & _id, bool _online ) = 0;
-};
-
 class INodeMirror
 {
 public:        
-    struct SState {
-        SState()
-            : id(common_vars::INVALID_NODE_ID)
-            , alive(false)
-            , busy(false)
-            , status(common_types::ENodeStatus::UNDEFINED)
-        {}
-        common_types::TNodeId id;
-        bool alive;
-        bool busy;
-        std::string lastError;
-        common_types::ENodeStatus status;
-    };
-
     struct SConfiguration {
 
     };
@@ -38,7 +17,7 @@ public:
     INodeMirror();
     virtual ~INodeMirror(){}
 
-    virtual bool configure( SConfiguration * _conf ) = 0;
+    virtual const common_types::SNodeState & getBaseState() = 0;
 
     virtual bool start() = 0;
     virtual bool pause() = 0;
@@ -50,4 +29,21 @@ public:
 };
 using PNodeMirror = std::shared_ptr<INodeMirror>;
 
+// > functors
+struct FNodeEqual {
+    FNodeEqual( common_types::TNodeId _nodeId )
+        : m_nodeId(_nodeId)
+    {}
+
+    bool operator()( PNodeMirror _node ){
+        return ( _node->getBaseState().id == m_nodeId );
+    }
+
+    common_types::TNodeId m_nodeId;
+};
+// < functors
+
 #endif // I_NODE_MIRROR_H
+
+
+

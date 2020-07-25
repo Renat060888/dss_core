@@ -12,12 +12,12 @@ bool DispatcherNodeDump::init( const SInitSettings & _settings ){
 
 }
 
-void DispatcherNodeDump::addObserver( INodeDispatcherObserver * _observer ){
+void DispatcherNodeDump::addObserver( INodeDumpObserver * _observer ){
 
 
 }
 
-void DispatcherNodeDump::removeObserver( INodeDispatcherObserver * _observer ){
+void DispatcherNodeDump::removeObserver( INodeDumpObserver * _observer ){
 
 }
 

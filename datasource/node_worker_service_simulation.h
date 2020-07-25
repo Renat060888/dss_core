@@ -6,21 +6,20 @@
 
 class NodeWorkerServiceSimula : public INodeMirror
 {
+    friend class DispatcherNodeSimulation;
 public:
-    struct SStateSimulation : INodeMirror::SState {
-
-    };
-
     struct SConfigSimulation : INodeMirror::SConfiguration {
-
-
+        bool realtime;
+        // std::string capability; // only for real node
+        int64_t pollIntervalMillisec;
     };
 
-    NodeWorkerServiceSimula( NodeAgentSimulationProxy * _nodeAgent );
+    NodeWorkerServiceSimula( PNodeAgentFacilityForWorker _nodeAgent );
+    ~NodeWorkerServiceSimula();
 
-    const SStateSimulation & getState();
-
-    virtual bool configure( SConfiguration * _conf ) override;
+    bool configure( const SConfigSimulation & _cfg );
+    const common_types::SNodeWorkerSimulationState & getState();
+    virtual const common_types::SNodeState & getBaseState() override;
 
     virtual bool start() override;
     virtual bool pause() override;
@@ -32,14 +31,25 @@ public:
 
 
 private:
-    // data
+    void updateState( const common_types::SNodeWorkerSimulationState & _workerState );
 
+    // data
+    common_types::SNodeWorkerSimulationState m_state;
 
     // service
-    NodeAgentSimulationProxy * m_nodeAgent;
+    PNodeAgentFacilityForWorker m_nodeAgentFacility;
 
 
 };
 using PNodeWorkerServiceSimula = std::shared_ptr<NodeWorkerServiceSimula>;
+
+
+// observer
+class INodeSimulationObserver {
+public:
+    ~INodeSimulationObserver(){}
+
+    virtual void callbackNodeSimulation( PNodeWorkerServiceSimula _node, bool _online ) = 0;
+};
 
 #endif // NODE_SIMULATION_H

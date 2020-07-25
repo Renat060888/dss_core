@@ -11,28 +11,44 @@ class UserDispatcher : public common_types::IServiceUserAuthorization
 {
     friend class CommandUserPing;
 public:
+    struct SInitSettings {
+
+    };
+
+    struct SState {
+        SInitSettings settings;
+        std::string lastError;
+    };
+
     UserDispatcher();
+    ~UserDispatcher();
+
+    bool init( const SInitSettings & _settings );
+    const SState & getState(){ return m_state; }
+    virtual const std::string & getLastError() override { return m_state.lastError; }
 
     void runSystemClock();
 
     virtual void addObserver( common_types::IUserDispatcherObserver * _observer ) override;
     virtual void removeObserver( common_types::IUserDispatcherObserver * _observer ) override;
-    virtual bool isRegistered( const common_types::TUserId & _userId ) override;
-    virtual const std::string & getLastError() override { return m_lastError; }
 
-    PUser getUser( const common_types::TUserId & _userId );
-    bool registerUser( std::string _userIp, common_types::TPid _userPid );
+    common_types::PUserState getUser( const common_types::TUserId & _userId );
+    common_types::TUserId registerUser( std::string _userIp, common_types::TPid _userPid );
+    virtual bool isRegistered( const common_types::TUserId & _userId ) override;
 
 
 private:
-    void updateUserState( void * _state );
+    void updateUserState( const common_types::SUserState & _state );
+
+    void loadPreviousSessionActiveUsers();
 
     // data
-    std::vector<PUser> m_users;
-    std::map<common_types::TUserId, PUser> m_usersById;
-    std::map<common_types::TContextId, PUser> m_usersByContextId;
+    SState m_state;
+    std::vector<common_types::PUserState> m_users;
+    std::map<common_types::TUserId, common_types::PUserState> m_usersById;
+    std::map<common_types::TContextId, common_types::PUserState> m_usersByContextId;
     std::vector<common_types::IUserDispatcherObserver *> m_observers;
-    std::string m_lastError;
+
 
 
 

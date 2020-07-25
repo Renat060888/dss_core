@@ -4,6 +4,7 @@
 
 class NodeAgentDumpProxy
 {
+    friend class DispatcherNodeDump;
 public:
     NodeAgentDumpProxy();
 };

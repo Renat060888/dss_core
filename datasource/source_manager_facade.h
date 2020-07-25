@@ -11,12 +11,9 @@
 #include "dispatcher_user.h"
 #include "context.h"
 
-// User <-> Context <-> NodeWorkerService <- NodeDispatcher -> NodeAgentProxy
-
 // TODO: if server crashed - restore Users & Contexts. In order to client side don't have to know about failure
 
-class SourceManagerFacade : public common_types::IUserDispatcherObserver,
-                            public INodeDispatcherObserver
+class SourceManagerFacade : public common_types::IUserDispatcherObserver
 {
 public:
     struct SServiceLocator {
@@ -41,32 +38,45 @@ public:
     void shutdown();
     const SState & getState(){ return m_state; }
 
-    PContext getContext( common_types::TUserId _userId, common_types::TContextId _ctxId );
-    void releaseContext( common_types::TUserId _userId, common_types::TContextId _ctxId );
+    // user and node interaction performed in context
+    bool openContext( common_types::TUserId _userId, common_types::TContextId _ctxId );
+    void closeContext( common_types::TUserId _userId );
+    PContext getContext( const common_types::TUserId & _userId );
+
+    UserDispatcher * getDispatcherUser();
+    DispatcherNodeSimulation * getDispatcherNodeSimulation();
+    DispatcherNodeReal * getDispatcherNodeReal();
 
 
 private:
+    struct SCallbackUserOnlineArgs {
+        common_types::TUserId id;
+        bool online;
+    };
+
     virtual void callbackUserOnline( const common_types::TUserId & _id, bool _online ) override;    
-    virtual void callbackNodeOnline( const common_types::TNodeId & _id, bool _online ) override;
+    void processUserOnlineCallbacks();
 
     void threadMaintenance();
 
-    void addRealNodesToContext( PEditableContext _ctx );
-    void addSimulaNodesToContext( PEditableContext _ctx );
-
     // data
     SState m_state;
+    bool m_shutdownCalled;
+    std::queue<SCallbackUserOnlineArgs> m_userOnlineCallbacks;
+
     PContext m_limboContext;
     std::vector<PContext> m_contexts;
     std::unordered_map<common_types::TContextId, PContext> m_contextsById;
-    bool m_shutdownCalled;
+    std::map<common_types::TUserId, PContext> m_contextsByUserId;
 
     // service
     DispatcherNodeSimulation m_nodeDispatcherSimula;
     DispatcherNodeReal m_nodeDispatcherReal;
     DispatcherNodeDump m_nodeDispatcherDump;
     UserDispatcher m_userDispatcher;
+
     std::thread * m_threadMaintenance;
+    std::mutex m_muUserOnlineCallbacks;
 };
 
 #endif // SOURCE_MANAGER_H

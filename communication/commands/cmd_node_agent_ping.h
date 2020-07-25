@@ -6,6 +6,7 @@
 
 class CommandNodeAgentPing : public ICommandExternal
 {
+    friend class CommandFactory;
 public:
     CommandNodeAgentPing( common_types::SIncomingCommandServices * _services );
 
@@ -13,8 +14,8 @@ public:
 
 
 private:
-
-
+    common_types::SNodeAgentSimulateState m_stateFromSimulationAgent;
+    common_types::SNodeAgentRealState m_stateFromRealAgent;
 
 };
 using PCommandNodeAgentPing = std::shared_ptr<CommandNodeAgentPing>;

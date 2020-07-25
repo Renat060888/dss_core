@@ -6,14 +6,17 @@
 
 #include "i_node_worker_service.h"
 #include "node_agent_simulation_proxy.h"
+#include "node_worker_service_simulation.h"
+
+
 
 class DispatcherNodeSimulation
 {
-    friend class CommandNodePing;
+    friend class CommandNodeAgentPing;
 public:
-    struct SNodeRequestForm {
-        int contextId;
-        int missionId;
+    struct SNodeFilter {
+        common_types::TContextId contextId;
+        common_types::TMissionId missionId;
     };
 
     struct SInitSettings {
@@ -22,38 +25,43 @@ public:
 
     struct SState {
         SInitSettings settings;
-        std::string m_lastError;
+        std::string lastError;
     };
 
     DispatcherNodeSimulation();
+    ~DispatcherNodeSimulation();
 
     bool init( const SInitSettings & _settings );
-    void addObserver( INodeDispatcherObserver * _observer );
-    void removeObserver( INodeDispatcherObserver * _observer );
     void runSystemClock();
     const SState & getState(){ return m_state; }
 
-    bool requestNode( const SNodeRequestForm & _form );
+    void addObserver( INodeSimulationObserver * _observer );
+    void removeObserver( INodeSimulationObserver * _observer );
+
+    bool requestNode( const SNodeFilter & _form );
+    void releaseNode( const SNodeFilter & _form );
     PNodeMirror getNode( const common_types::TNodeId & _id );
     std::vector<PNodeMirror> getNodes();
-    void releaseNode( PNodeMirror _nodeMirror );
 
 
 
 private:
+    // from ping
     void updateNodeAgentState( const common_types::SNodeAgentSimulateState & _state );
 
+    void updateAgentWorkers( PNodeAgentSimulationProxy & _agent, const std::vector<common_types::SNodeWorkerSimulationState> & _nodeWorkers );
+
+
+
     // data
-    std::vector<PNodeMirror> m_nodes;
-    std::map<common_types::TNodeId, PNodeMirror> m_nodeById;
-    std::vector<INodeDispatcherObserver *> m_observers;
-    std::map<common_types::TNodeId, PNodeAgentSimulationProxy> m_nodeAgentById;
     SState m_state;
+    std::vector<PNodeMirror> m_nodesWorkers;
+    std::map<common_types::TNodeId, PNodeWorkerServiceSimula> m_nodeWorkersById;
+    std::map<common_types::TNodeId, PNodeAgentSimulationProxy> m_nodeAgentsById;
+    std::vector<INodeSimulationObserver *> m_observers;
 
 
     // service
-
-
 
 
 };

@@ -3,10 +3,10 @@
 #include <microservice_common/system/logger.h>
 #include <microservice_common/system/daemonizator.h>
 #include <microservice_common/communication/shell.h>
-#include <dss_common/system/args_parser.h>
-#include <dss_common/system/config_reader.h>
-#include <dss_common/system/path_locator.h>
 
+#include "system/args_parser.h"
+#include "system/config_reader.h"
+#include "system/path_locator.h"
 #include "distributed_simulation_system.h"
 #include "communication/unified_command_convertor_dss.h"
 
@@ -26,10 +26,10 @@ static bool initSingletons( int _argc, char ** _argv, char ** _env ){
 
     // configs
     ConfigReader::SIninSettings settings3;
-    settings3.mainConfigPath = ARGS_PARSER.getVal(EPlayerArguments::MAIN_CONFIG_PATH_FROM_CONSOLE);
+    settings3.mainConfigPath = ARGS_PARSER.getVal(ECoreArguments::MAIN_CONFIG_PATH_FROM_CONSOLE);
     settings3.commandConvertor = & UNIFIED_COMMAND_CONVERTOR;
     settings3.env = _env;
-    settings3.projectName = "dss";
+    settings3.projectName = "dss_core";
     if( ! CONFIG_READER.init(settings3) ){
         return false;
     }
@@ -37,16 +37,16 @@ static bool initSingletons( int _argc, char ** _argv, char ** _env ){
     // logger
     logger_common::SInitSettings settings2;
     settings2.loggerName = "DssCore";
-    settings2.unilogConfigPath = CONFIG_PARAMS.SYSTEM_UNILOG_CONFIG_PATH;
+    settings2.unilogConfigPath = CONFIG_PARAMS.baseParams.SYSTEM_UNILOG_CONFIG_PATH;
 
-    if( CONFIG_PARAMS.SYSTEM_LOG_TO_STDOUT ){
+    if( CONFIG_PARAMS.baseParams.SYSTEM_LOG_TO_STDOUT ){
         settings2.logEndpoints = (logger_common::ELogEndpoints)( (int)settings2.logEndpoints | (int)logger_common::ELogEndpoints::Stdout );
     }
-    if( CONFIG_PARAMS.SYSTEM_LOG_TO_FILE ){
+    if( CONFIG_PARAMS.baseParams.SYSTEM_LOG_TO_FILE ){
         settings2.logEndpoints = (logger_common::ELogEndpoints)( (int)settings2.logEndpoints | (int)logger_common::ELogEndpoints::File );
-        settings2.fileName = CONFIG_PARAMS.SYSTEM_LOGFILE_NAME;
-        settings2.filePath = CONFIG_PARAMS.SYSTEM_REGULAR_LOGFILE_PATH;
-        settings2.rotationSizeMb = CONFIG_PARAMS.SYSTEM_LOGFILE_ROTATION_SIZE_MB;
+        settings2.fileName = CONFIG_PARAMS.baseParams.SYSTEM_LOGFILE_NAME;
+        settings2.filePath = CONFIG_PARAMS.baseParams.SYSTEM_REGULAR_LOGFILE_PATH;
+        settings2.rotationSizeMb = CONFIG_PARAMS.baseParams.SYSTEM_LOGFILE_ROTATION_SIZE_MB;
     }
 
     Logger::singleton().initGlobal( settings2 );
@@ -75,10 +75,10 @@ static void parseResponse( const std::string & _msg ){
 
 static bool executeShellCommand(){
 
-    if( ARGS_PARSER.isKeyExist(EPlayerArguments::SHELL_COMMAND_START_SERVER) ){
+    if( ARGS_PARSER.isKeyExist(ECoreArguments::SHELL_COMMAND_START_CORE) ){
 
         // deamonize
-        if( ARGS_PARSER.isKeyExist(EPlayerArguments::AS_DAEMON) ){
+        if( ARGS_PARSER.isKeyExist(ECoreArguments::AS_DAEMON) ){
             if( ! Daemonizator::turnIntoDaemon() ){
                 return false;
             }
@@ -86,11 +86,11 @@ static bool executeShellCommand(){
             // reinit logger for daemon
             logger_common::SInitSettings settings2;
             settings2.loggerName = "DssCoreDaemon";
-            settings2.unilogConfigPath = ConfigReader::singleton().get().SYSTEM_UNILOG_CONFIG_PATH;
+            settings2.unilogConfigPath = CONFIG_PARAMS.baseParams.SYSTEM_UNILOG_CONFIG_PATH;
             settings2.logEndpoints = logger_common::ELogEndpoints::File;
-            settings2.fileName = CONFIG_PARAMS.SYSTEM_LOGFILE_NAME;
-            settings2.filePath = CONFIG_PARAMS.SYSTEM_REGULAR_LOGFILE_PATH;
-            settings2.rotationSizeMb = CONFIG_PARAMS.SYSTEM_LOGFILE_ROTATION_SIZE_MB;
+            settings2.fileName = CONFIG_PARAMS.baseParams.SYSTEM_LOGFILE_NAME;
+            settings2.filePath = CONFIG_PARAMS.baseParams.SYSTEM_REGULAR_LOGFILE_PATH;
+            settings2.rotationSizeMb = CONFIG_PARAMS.baseParams.SYSTEM_LOGFILE_ROTATION_SIZE_MB;
 
             Logger::singleton().initGlobal( settings2 );
 
@@ -109,12 +109,12 @@ static bool executeShellCommand(){
             }
         }
     }
-    else if( ARGS_PARSER.isKeyExist(EPlayerArguments::SHELL_COMMAND_TO_SERVER) ){
+    else if( ARGS_PARSER.isKeyExist(ECoreArguments::SHELL_COMMAND_TO_CORE) ){
 
         // reinit logger for client side
         logger_common::SInitSettings settings;
         settings.loggerName = "DssCoreShellClient";
-        settings.unilogConfigPath = ConfigReader::singleton().get().SYSTEM_UNILOG_CONFIG_PATH;
+        settings.unilogConfigPath = CONFIG_PARAMS.baseParams.SYSTEM_UNILOG_CONFIG_PATH;
         Logger::singleton().initGlobal( settings );
 
         // shell client
@@ -128,7 +128,7 @@ static bool executeShellCommand(){
         }
 
         // send message to server
-        const string message =  ARGS_PARSER.getVal(EPlayerArguments::SHELL_COMMAND_TO_SERVER);
+        const string message =  ARGS_PARSER.getVal(ECoreArguments::SHELL_COMMAND_TO_CORE);
         const string response = shell.makeBlockedRequest( message );
         parseResponse( response );
     }

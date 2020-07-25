@@ -8,6 +8,7 @@ class User
 public:
     User();
 
+    // TODO: do ?
 
 private:
 

@@ -27,6 +27,8 @@ LIBS += \
     -lRTI-NG \      # OpenRTI # TODO: wtf?
     -lboost_program_options \ # TODO: wtf?
     -lboost_system \ # TODO: wtf?
+    -lboost_filesystem \
+    -lboost_regex \
     -ljsoncpp \ # TODO: replace by boost one
     -lmicroservice_common \
     -ldss_common
@@ -79,7 +81,16 @@ SOURCES += \
         datasource/visitor_node_configurator.cpp \
         distributed_simulation_system.cpp \
         main.cpp \
-        storage/storage_engine_facade.cpp
+        storage/storage_engine_facade.cpp \
+    system/args_parser.cpp \
+    system/config_reader.cpp \
+    system/path_locator.cpp \
+    communication/commands/cmd_user_configure_simulation.cpp \
+    communication/commands/cmd_user_configure_real.cpp \
+    communication/commands/cmd_user_processing_pause.cpp \
+    communication/commands/cmd_user_processing_reset.cpp \
+    communication/commands/cmd_user_processing_start.cpp \
+    communication/commands/cmd_user_live_processing.cpp
 
 HEADERS += \
     analyze/analytic_manager_facade.h \
@@ -108,4 +119,13 @@ HEADERS += \
     datasource/user.h \
     datasource/visitor_node_configurator.h \
     distributed_simulation_system.h \
-    storage/storage_engine_facade.h
+    storage/storage_engine_facade.h \
+    system/args_parser.h \
+    system/config_reader.h \
+    system/path_locator.h \
+    communication/commands/cmd_user_configure_simulation.h \
+    communication/commands/cmd_user_configure_real.h \
+    communication/commands/cmd_user_processing_pause.h \
+    communication/commands/cmd_user_processing_reset.h \
+    communication/commands/cmd_user_processing_start.h \
+    communication/commands/cmd_user_live_processing.h
