@@ -33,7 +33,7 @@ bool NodeWorkerServiceDump::pause(){
 
 }
 
-bool NodeWorkerServiceDump::reset(){
+bool NodeWorkerServiceDump::stop(){
 
 }
 
@@ -41,6 +41,6 @@ void NodeWorkerServiceDump::switchLivePlaying( bool _live ){
 
 }
 
-void NodeWorkerServiceDump::resetTime(){
+void NodeWorkerServiceDump::useRTI( bool _use ){
 
 }

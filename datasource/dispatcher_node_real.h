@@ -35,8 +35,6 @@ public:
     void addObserver( INodeRealObserver * _observer );
     void removeObserver( INodeRealObserver * _observer );
 
-    bool requestNode( const SNodeRequestForm & _form );
-    void releaseNode( common_types::TContextId _ctx );
     PNodeMirror getNode( const common_types::TNodeId & _id );
     std::vector<PNodeMirror> getNodes();
 

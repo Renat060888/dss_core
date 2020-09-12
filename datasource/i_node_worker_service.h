@@ -9,11 +9,7 @@
 
 class INodeMirror
 {
-public:        
-    struct SConfiguration {
-
-    };
-
+public:            
     INodeMirror();
     virtual ~INodeMirror(){}
 
@@ -21,16 +17,16 @@ public:
 
     virtual bool start() = 0;
     virtual bool pause() = 0;
-    virtual bool reset() = 0;
+    virtual bool stop() = 0;
 
     virtual void switchLivePlaying( bool _live ) = 0;
-
-    virtual void resetTime() = 0;
+    virtual void useRTI( bool _use ) = 0;
 };
 using PNodeMirror = std::shared_ptr<INodeMirror>;
 
 // > functors
-struct FNodeEqual {
+class FNodeEqual {
+public:
     FNodeEqual( common_types::TNodeId _nodeId )
         : m_nodeId(_nodeId)
     {}
@@ -38,7 +34,7 @@ struct FNodeEqual {
     bool operator()( PNodeMirror _node ){
         return ( _node->getBaseState().id == m_nodeId );
     }
-
+private:
     common_types::TNodeId m_nodeId;
 };
 // < functors

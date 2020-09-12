@@ -25,8 +25,10 @@ public:
     struct SState {
         SState()
             : realTimeSync(false)
+            , processingIntervalMillisec(0)
         {}
         bool realTimeSync;
+        int64_t processingIntervalMillisec;
         SInitSettings settings;
         std::string lastError;
     };
@@ -38,16 +40,16 @@ public:
     const SState & getState() const { return m_state; }
 
     // NOTE: define clear mechanisms & politics of jointly working nodes in order to avoid combinatorial explosion of work modes
-    void configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceSimula::SConfigSimulation & _cfg );
-    void configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceReal::SConfigReal & _cfg );
-    void configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceDump::SConfigDump & _cfg );
-    void startNode( const common_types::TNodeId & _id );
+    void configureNode( const common_types::TNodeId & _id, const common_types::SConfigSimulation & _cfg );
+    void configureNode( const common_types::TNodeId & _id, const common_types::SConfigReal & _cfg );
+    void configureNode( const common_types::TNodeId & _id, const common_types::SConfigDump & _cfg );
+
+    bool startNode( const common_types::TNodeId & _id );
     void pauseNode( const common_types::TNodeId & _id );
     void stopNode( const common_types::TNodeId & _id );
-    bool isHasActiveNodes() const;
 
+    bool isHasActiveNodes() const;
     void setLiveProcessing( bool _live );
-    void makeNodeStatic( const common_types::TNodeId & _id, bool _static );
 
     bool isHasUsers() const;
     bool isHasUser( common_types::TUserId _userId ) const;
@@ -63,6 +65,7 @@ private:
     virtual void callbackNodeSimulation( PNodeWorkerServiceSimula _node, bool _online ) override;
     virtual void callbackNodeReal( PNodeWorkerServiceReal _node, bool _online ) override;
 
+    void makeNodeStatic( const common_types::TNodeId & _id, bool _static );
 
 
     // data
@@ -76,9 +79,10 @@ private:
 
     // service
     RealtimeSynchronizer m_realTimeSynchronizer;
+    class DatasourceDescriptor * dd;
+    class DatasourceReader * dr;
 
 
-    // TODO: DatasourceDescriptor with DatasourceEditor
 
 };
 using PContext = std::shared_ptr<Context>;

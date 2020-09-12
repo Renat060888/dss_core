@@ -4,16 +4,8 @@
 #include <microservice_common/communication/network_interface.h>
 #include <dss_common/common/common_types.h>
 
-class INodeAgentFacilityForWorker {
-public:
-    ~INodeAgentFacilityForWorker(){}
 
-    virtual void forwardNodeWorkerRequest( void * _serializedRequest ) = 0;
-};
-using PNodeAgentFacilityForWorker = std::shared_ptr<INodeAgentFacilityForWorker>;
-
-
-class NodeAgentSimulationProxy : public INodeAgentFacilityForWorker
+class NodeAgentSimulationProxy : public common_types::INodeAgentFacilityForWorker
 {
 public:
     struct SInitSettings {
@@ -34,7 +26,7 @@ public:
 
 private:
     // from worker
-    virtual void forwardNodeWorkerRequest( void * _serializedRequest ) override;
+    virtual void forwardNodeWorkerRequest( const std::string & _serializedRequest ) override;
 
 
 

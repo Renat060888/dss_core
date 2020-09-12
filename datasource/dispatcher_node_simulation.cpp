@@ -54,6 +54,10 @@ bool DispatcherNodeSimulation::init( const SInitSettings & _settings ){
 
 
 
+
+
+
+
     VS_LOG_INFO << PRINT_HEADER << " init success" << endl;
     return true;
 }
@@ -75,7 +79,10 @@ void DispatcherNodeSimulation::addObserver( INodeSimulationObserver * _observer 
 
 void DispatcherNodeSimulation::removeObserver( INodeSimulationObserver * _observer ){
 
-    m_observers.erase( std::remove(m_observers.begin(), m_observers.end(), _observer) );
+    auto iter = std::remove( m_observers.begin(), m_observers.end(), _observer );
+    if( iter != m_observers.end() ){
+        m_observers.erase( iter );
+    }
 }
 
 void DispatcherNodeSimulation::runSystemClock(){
@@ -134,7 +141,8 @@ void DispatcherNodeSimulation::runSystemClock(){
 
 bool DispatcherNodeSimulation::requestNode( const SNodeFilter & _form ){
 
-    // TODO: what if there are multiple agents ?
+    // TODO: what if there are multiple agents ? ( depends on politic )
+
     if( ! m_nodeAgentsById.empty() ){
         PNodeAgentSimulationProxy agent = m_nodeAgentsById.begin()->second;
 

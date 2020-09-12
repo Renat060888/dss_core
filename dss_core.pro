@@ -20,6 +20,7 @@ DEFINES += \
 
 LIBS += \
     -lpthread \
+    -lprotobuf \
     -lrti1516e \ # TODO: wtf?
     -lfedtime1516e \ # TODO: wtf?
     -lFedTime \     # OpenRTI # TODO: wtf?
@@ -90,7 +91,9 @@ SOURCES += \
     communication/commands/cmd_user_processing_pause.cpp \
     communication/commands/cmd_user_processing_reset.cpp \
     communication/commands/cmd_user_processing_start.cpp \
-    communication/commands/cmd_user_live_processing.cpp
+    communication/commands/cmd_user_live_processing.cpp \
+    system/system_environment_facade_core.cpp \
+    system/objrepr_bus_core.cpp
 
 HEADERS += \
     analyze/analytic_manager_facade.h \
@@ -128,4 +131,6 @@ HEADERS += \
     communication/commands/cmd_user_processing_pause.h \
     communication/commands/cmd_user_processing_reset.h \
     communication/commands/cmd_user_processing_start.h \
-    communication/commands/cmd_user_live_processing.h
+    communication/commands/cmd_user_live_processing.h \
+    system/system_environment_facade_core.h \
+    system/objrepr_bus_core.h

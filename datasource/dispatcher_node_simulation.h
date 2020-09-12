@@ -4,17 +4,18 @@
 #include <vector>
 #include <map>
 
-#include "i_node_worker_service.h"
 #include "node_agent_simulation_proxy.h"
 #include "node_worker_service_simulation.h"
-
-
 
 class DispatcherNodeSimulation
 {
     friend class CommandNodeAgentPing;
 public:
     struct SNodeFilter {
+        SNodeFilter()
+            : contextId(0)
+            , missionId(0)
+        {}
         common_types::TContextId contextId;
         common_types::TMissionId missionId;
     };

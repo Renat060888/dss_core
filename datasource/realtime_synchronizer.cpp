@@ -48,7 +48,9 @@ bool RealtimeSynchronizer::init( const SInitSettings & _settings ){
 void RealtimeSynchronizer::threadRealtimeSync(){
 
     VS_LOG_INFO << PRINT_HEADER << " start real time sync THREAD" << endl;
+
     while( ! m_shutdownCalled ){
+
         std::mutex lockMutex;
         unique_lock<std::mutex> cvLock( lockMutex );
         m_cvRealtimeSync.wait( cvLock, [this]() -> bool { return m_state.inSync || m_shutdownCalled; } );
@@ -65,6 +67,7 @@ void RealtimeSynchronizer::threadRealtimeSync(){
         }
         VS_LOG_INFO << PRINT_HEADER << " stop synchronize for context: " << m_state.settings.ctxId << endl;
     }
+
     VS_LOG_INFO << PRINT_HEADER << " stop real time sync THREAD" << endl;
 }
 

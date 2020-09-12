@@ -11,7 +11,7 @@
 #include "dispatcher_user.h"
 #include "context.h"
 
-// TODO: if server crashed - restore Users & Contexts. In order to client side don't have to know about failure
+// TODO: if server crashed - restore Users & Contexts. In order to client side don't have to know about any failure
 
 class SourceManagerFacade : public common_types::IUserDispatcherObserver
 {
@@ -38,12 +38,12 @@ public:
     void shutdown();
     const SState & getState(){ return m_state; }
 
-    // user and node interaction performed in context
+    // REQUEST FROM USER
     bool openContext( common_types::TUserId _userId, common_types::TContextId _ctxId );
     void closeContext( common_types::TUserId _userId );
     PContext getContext( const common_types::TUserId & _userId );
 
-    UserDispatcher * getDispatcherUser();
+    // RESPONSE FROM AGENT
     DispatcherNodeSimulation * getDispatcherNodeSimulation();
     DispatcherNodeReal * getDispatcherNodeReal();
 
@@ -75,7 +75,7 @@ private:
     DispatcherNodeDump m_nodeDispatcherDump;
     UserDispatcher m_userDispatcher;
 
-    std::thread * m_threadMaintenance;
+    std::thread * m_trMaintenance;
     std::mutex m_muUserOnlineCallbacks;
 };
 

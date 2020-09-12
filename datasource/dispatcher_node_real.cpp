@@ -40,24 +40,13 @@ void DispatcherNodeReal::addObserver( INodeRealObserver * _observer ){
 
 void DispatcherNodeReal::removeObserver( INodeRealObserver * _observer ){
 
-    m_observers.erase( std::remove(m_observers.begin(), m_observers.end(), _observer) );
+    auto iter = std::remove( m_observers.begin(), m_observers.end(), _observer );
+    if( iter != m_observers.end() ){
+        m_observers.erase( iter );
+    }
 }
 
 void DispatcherNodeReal::runSystemClock(){
-
-}
-
-bool DispatcherNodeReal::requestNode( const SNodeRequestForm & _form ){
-
-
-    // check NodeAgent existing
-
-
-
-    return true;
-}
-
-void DispatcherNodeReal::releaseNode( common_types::TContextId _ctx ){
 
 }
 
@@ -81,7 +70,7 @@ void DispatcherNodeReal::updateNodeAgentState( const common_types::SNodeAgentRea
 
 
 
-    PNodeWorkerServiceReal node = std::make_shared<NodeWorkerServiceReal>();
+    PNodeWorkerServiceReal node = std::make_shared<NodeWorkerServiceReal>( nullptr );
 
 
 

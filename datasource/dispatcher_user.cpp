@@ -27,6 +27,8 @@ bool UserDispatcher::init( const SInitSettings & _settings ){
 
 
 
+
+
     return true;
 }
 
@@ -67,7 +69,10 @@ void UserDispatcher::addObserver( common_types::IUserDispatcherObserver * _obser
 
 void UserDispatcher::removeObserver( common_types::IUserDispatcherObserver * _observer ){
 
-    m_observers.erase( std::remove(m_observers.begin(), m_observers.end(), _observer) );
+    auto iter = std::remove( m_observers.begin(), m_observers.end(), _observer );
+    if( iter != m_observers.end() ){
+        m_observers.erase( iter );
+    }
 }
 
 bool UserDispatcher::isRegistered( const common_types::TUserId & _userId ){
@@ -95,7 +100,7 @@ PUserState UserDispatcher::getUser( const common_types::TUserId & _userId ){
     }
 }
 
-common_types::TUserId UserDispatcher::registerUser( std::string _userIp, common_types::TPid _userPid ){
+common_types::TUserId UserDispatcher::registerUser( const std::string & _userIp, common_types::TPid _userPid ){
 
     // check for valid ip & pid
     // TODO: do

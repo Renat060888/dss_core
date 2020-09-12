@@ -39,9 +39,18 @@ bool Context::init( const SInitSettings & _settings ){
     return true;
 }
 
-void Context::configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceSimula::SConfigSimulation & _cfg ){
+void Context::configureNode( const common_types::TNodeId & _id, const common_types::SConfigSimulation & _cfg ){
 
-    // ( for real time check, processing interval check, RTI sync launch / stop, etc )
+    // NOTE: main purpose of configuration is set worker to READY state
+
+
+
+
+    // TODO: cancel configure if some of this conditions are failed:
+    // 1 for real time check
+    // 2 processing interVal check
+    // 3 RTI sync launch / stop, etc
+    // 4 check available physic models(1) on node with context objects(2)
 
     auto iter = std::find_if( m_nodesSimula.begin(), m_nodesSimula.end(), FNodeEqual(_id) );
     if( iter != m_nodesSimula.end() ){
@@ -53,7 +62,9 @@ void Context::configureNode( const common_types::TNodeId & _id, const NodeWorker
     }
 }
 
-void Context::configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceReal::SConfigReal & _cfg ){
+void Context::configureNode( const common_types::TNodeId & _id, const common_types::SConfigReal & _cfg ){
+
+    // NOTE: main purpose of configuration is set worker to READY state
 
     auto iter = std::find_if( m_nodesReal.begin(), m_nodesReal.end(), FNodeEqual(_id) );
     if( iter != m_nodesReal.end() ){
@@ -65,48 +76,86 @@ void Context::configureNode( const common_types::TNodeId & _id, const NodeWorker
     }
 }
 
-void Context::configureNode( const common_types::TNodeId & _id, const NodeWorkerServiceDump::SConfigDump & _cfg ){
+void Context::configureNode( const common_types::TNodeId & _id, const common_types::SConfigDump & _cfg ){
 
-    // TODO: do
+    // NOTE: main purpose of configuration is set worker to READY state
+
+    // ...
 
 
 
 }
 
-void Context::startNode( const common_types::TNodeId & _id ){
+bool Context::startNode( const common_types::TNodeId & _id ){
+
+    // check node
+    PNodeMirror node;
+    auto iter = m_nodesById.find( _id );
+    if( iter != m_nodesById.end() ){
+        node = iter->second;
+    }
+    else{
+        m_state.lastError = "node not found with id: " + _id;
+        return false;
+    }
+
+    if( node->getBaseState().status != common_types::ENodeStatus::READY ){
+        m_state.lastError = "node is not in READY state, id: " + _id;
+        return false;
+    }
 
     // realtime sync
-    if( ! m_nodesReal.empty() && ! m_realTimeSynchronizer.getState().inSync ){
+    bool simulaNodeInRealtime = false;
+    auto iterSimulaNode = std::find_if( m_nodesSimula.begin(), m_nodesSimula.end(), FNodeEqual(node->getBaseState().id) );
+    if( iterSimulaNode != m_nodesSimula.end() ){
+        const PNodeWorkerServiceSimula & nodeWorker = ( * iterSimulaNode );
+        simulaNodeInRealtime = nodeWorker->getState().realtime;
+    }
+
+    // TODO: existence of real node doesn't mean than it in READY state
+    if( (! m_nodesReal.empty() || simulaNodeInRealtime) && ! m_realTimeSynchronizer.getState().inSync ){
         m_realTimeSynchronizer.run();
     }
 
-    // if only one simulation node - don't use RTI at all
-    if( 1 == m_nodesSimula.size() ){
-//    node->useRTI( false );
+    // if there is only one simulation node - don't use RTI at all
+    if( (1 == m_nodesSimula.size() && ! simulaNodeInRealtime) && m_nodesReal.empty() ){
+        node->useRTI( false );
+    }
+    else{
+        node->useRTI( true );
     }
 
-    // start node
-    auto iter = m_nodesById.find( _id );
-    PNodeMirror node = iter->second;
     node->start();
+    return true;
 }
 
 void Context::pauseNode( const common_types::TNodeId & _id ){
 
     auto iter = m_nodesById.find( _id );
-    PNodeMirror node = iter->second;
-    node->pause();
+    if( iter != m_nodesById.end() ){
+        PNodeMirror node = iter->second;
+        node->pause();
+    }
 }
 
 void Context::stopNode( const common_types::TNodeId & _id ){
 
     // stop node
     auto iter = m_nodesById.find( _id );
-    PNodeMirror node = iter->second;
-    node->reset();
+    if( iter != m_nodesById.end() ){
+        PNodeMirror node = iter->second;
+        node->stop();
+    }
 
     // interrupt realtime sync
-    if( ! m_nodesReal.empty() && m_realTimeSynchronizer.getState().inSync ){
+    bool allNodeStopped = true;
+    for( const PNodeMirror & node : m_nodes ){
+        if( node->getBaseState().status != common_types::ENodeStatus::READY ){
+            allNodeStopped = false;
+        }
+    }
+
+    if( allNodeStopped && m_realTimeSynchronizer.getState().inSync ){
         m_realTimeSynchronizer.interrupt();
     }
 }
@@ -129,7 +178,7 @@ void Context::excludeUser( common_types::TUserId _userId ){
 bool Context::isHasActiveNodes() const {
 
     for( const PNodeMirror & node : m_nodes ){
-        if( node->getBaseState().busy ){
+        if( common_types::ENodeStatus::ACTIVE == node->getBaseState().status ){
             return true;
         }
     }
@@ -147,7 +196,10 @@ bool Context::isHasUser( common_types::TUserId _userId ) const {
 
 void Context::makeNodeStatic( const common_types::TNodeId & _id, bool _static ){
 
-    // NOTE: "Static" -> inside system there are two nodes - simula/dump or real/dump. But for user it is the same node
+    // NOTE: inside system there are only two nodes - simula/dump(static) or real/dump(static). But for user it is the same node
+
+
+
 
 
 }
@@ -162,10 +214,14 @@ void Context::callbackNodeSimulation( PNodeWorkerServiceSimula _node, bool _onli
     if( _online ){
         assert( std::find_if(m_nodesSimula.begin(), m_nodesSimula.end(), FNodeEqual(_node->getBaseState().id)) == m_nodesSimula.end() );
         m_nodesSimula.push_back( _node );
+        assert( std::find_if(m_nodes.begin(), m_nodes.end(), FNodeEqual(_node->getBaseState().id)) == m_nodes.end() );
+        m_nodes.push_back( _node );
         m_nodesById.insert( {_node->getBaseState().id, _node} );
     }
     else{
         m_nodesById.erase( _node->getBaseState().id );
+        m_nodes.erase( std::remove_if(m_nodes.begin(), m_nodes.end(), FNodeEqual(_node->getBaseState().id)) );
+        assert( std::find_if(m_nodes.begin(), m_nodes.end(), FNodeEqual(_node->getBaseState().id)) == m_nodes.end() );
         m_nodesSimula.erase( std::remove_if(m_nodesSimula.begin(), m_nodesSimula.end(), FNodeEqual(_node->getBaseState().id)) );
         assert( std::find_if(m_nodesSimula.begin(), m_nodesSimula.end(), FNodeEqual(_node->getBaseState().id)) == m_nodesSimula.end() );
     }

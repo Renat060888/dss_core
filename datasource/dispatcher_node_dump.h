@@ -9,6 +9,10 @@ class DispatcherNodeDump
     friend class CommandNodeAgentPing;
 public:
     struct SNodeRequestForm {
+        SNodeRequestForm()
+            : contextId(0)
+            , missionId(0)
+        {}
         int contextId;
         int missionId;
     };

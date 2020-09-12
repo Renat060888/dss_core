@@ -13,9 +13,12 @@ using namespace std;
 // part of functional moved to microservice-common
 // remove recorder
 
-// disable user authorization
-// disable task distribution to nodes
+// disable user authorization (YAGNNI)
+// disable task distribution to nodes (YAGNNI)
 // RTI is not always needed
+// no parallel processing in node & other redundant actions
+
+// main advantages of the node approach: 1) load balancing 2) reliability 3) integrate with remote training point
 
 static constexpr const char * PRINT_HEADER = "SrcManager:";
 
@@ -35,7 +38,7 @@ struct FContextEqual {
 
 SourceManagerFacade::SourceManagerFacade()
     : m_shutdownCalled(false)
-    , m_threadMaintenance(nullptr)
+    , m_trMaintenance(nullptr)
 {
 
 }
@@ -77,7 +80,7 @@ bool SourceManagerFacade::init( const SInitSettings & _settings ){
     m_userDispatcher.addObserver( this );
 
     // maintenance thread
-    m_threadMaintenance = new std::thread( & SourceManagerFacade::threadMaintenance, this );
+    m_trMaintenance = new std::thread( & SourceManagerFacade::threadMaintenance, this );
 
     VS_LOG_INFO << PRINT_HEADER << " init success" << endl;
     return true;
@@ -92,7 +95,7 @@ void SourceManagerFacade::shutdown(){
     VS_LOG_INFO << PRINT_HEADER << " begin shutdown" << endl;
 
     m_shutdownCalled = true;
-    common_utils::threadShutdown( m_threadMaintenance );
+    common_utils::threadShutdown( m_trMaintenance );
 
 
 
@@ -133,6 +136,9 @@ void SourceManagerFacade::processUserOnlineCallbacks(){
                 PContext ctx = iterCtx->second;
                 ctx->excludeUser( callbackArgs.id );
             }
+            else{
+                m_limboContext->excludeUser( callbackArgs.id );
+            }
         }
         // besides normal context opening:
         // initially the user is considered as 'without contexted'
@@ -153,14 +159,14 @@ PContext SourceManagerFacade::getContext( const common_types::TUserId & _userId 
     }
 
     // if context not yet opened
-    if( m_limboContext->isHasUser(_userId) ){
+    if( m_limboContext->isHasUser(_userId) && (m_contextsByUserId.find(_userId) == m_contextsByUserId.end()) ){
         return m_limboContext;
     }
 
     // check context
     auto iterCtx = m_contextsByUserId.find( _userId );
     if( iterCtx == m_contextsByUserId.end() ){
-        m_state.lastError = PRINT_HEADER + string(" context not found");
+        m_state.lastError = PRINT_HEADER + string(" context not found for user: ") + _userId;
         return nullptr;
     }
 
@@ -211,9 +217,9 @@ bool SourceManagerFacade::openContext( common_types::TUserId _userId, common_typ
     }
 
     // move user from limbo to context
+    m_limboContext->excludeUser( _userId );
     context->includeUser( _userId );
     m_contextsByUserId.insert( {_userId, context} );
-    m_limboContext->excludeUser( _userId );
 
     return true;
 }
@@ -229,7 +235,7 @@ void SourceManagerFacade::closeContext( common_types::TUserId _userId ){
     // check context
     auto iterCtx = m_contextsByUserId.find( _userId );
     if( iterCtx != m_contextsByUserId.end() ){
-        m_state.lastError = PRINT_HEADER + string(" context to close not found for user ") + _userId;
+        m_state.lastError = PRINT_HEADER + string(" context to close not found for user: ") + _userId;
         return;
     }
     PContext context = iterCtx->second;
@@ -255,10 +261,6 @@ void SourceManagerFacade::closeContext( common_types::TUserId _userId ){
     m_contextsById.erase( ctxId );
     m_contextsByUserId.erase( _userId );
     m_contexts.erase( std::remove_if(m_contexts.begin(), m_contexts.end(), FContextEqual(ctxId)) );
-}
-
-UserDispatcher * SourceManagerFacade::getDispatcherUser(){
-    return & m_userDispatcher;
 }
 
 DispatcherNodeSimulation * SourceManagerFacade::getDispatcherNodeSimulation(){

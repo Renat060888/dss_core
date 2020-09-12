@@ -10,28 +10,21 @@ class NodeWorkerServiceDump : public INodeMirror
 public:
     struct SStateDump : common_types::SNodeState {
 
-    };
-
-    struct SConfigDump : INodeMirror::SConfiguration {
-        bool realtime;
-        std::string capability;
-        // int64_t pollIntervalMillisec; // only for real/simula node
-    };
+    };    
 
     NodeWorkerServiceDump();
 
-    bool configure( const SConfigDump & _cfg );
+    bool configure( const common_types::SConfigDump & _cfg );
     const SStateDump & getState();
     virtual const common_types::SNodeState & getBaseState() override;
 
 
     virtual bool start() override;
     virtual bool pause() override;
-    virtual bool reset() override;
+    virtual bool stop() override;
 
     virtual void switchLivePlaying( bool _live ) override;
-
-    virtual void resetTime() override;
+    virtual void useRTI( bool _use ) override;
 
 
 private:

@@ -4,6 +4,8 @@
 
 #include <boost/property_tree/json_parser.hpp>
 #include <microservice_common/system/logger.h>
+#include <dss_common/communication/protocols/dss_node_agent_simulation.pb.h>
+#include <dss_common/communication/protocols/dss_node_agent_real.pb.h>
 #include <dss_common/common/common_utils.h>
 #include <dss_common/common/common_vars.h>
 
@@ -12,10 +14,39 @@
 #include "commands/cmd_user_register.h"
 #include "commands/cmd_context_open.h"
 #include "commands/cmd_context_close.h"
+#include "commands/cmd_node_agent_ping.h"
 
 using namespace std;
 
 static constexpr const char * PRINT_HEADER = "CommandFactory:";
+
+static common_types::ENodeStatus convertWorkerStatus( const ::google_protobuf_dss_worker_simula::EWorkerStatus & _status ){
+    switch( _status ){
+    case ::google_protobuf_dss_worker_simula::EWorkerStatus::INITED : { return common_types::ENodeStatus::INITED; }
+    case ::google_protobuf_dss_worker_simula::EWorkerStatus::PREPARING : { return common_types::ENodeStatus::PREPARING; }
+    case ::google_protobuf_dss_worker_simula::EWorkerStatus::READY : { return common_types::ENodeStatus::READY; }
+    case ::google_protobuf_dss_worker_simula::EWorkerStatus::ACTIVE : { return common_types::ENodeStatus::ACTIVE; }
+    case ::google_protobuf_dss_worker_simula::EWorkerStatus::IDLE : { return common_types::ENodeStatus::IDLE; }
+    case ::google_protobuf_dss_worker_simula::EWorkerStatus::CRASHED : { return common_types::ENodeStatus::CRASHED; }
+    default : {
+
+    }
+    }
+}
+
+static common_types::ENodeStatus convertWorkerStatus( const ::google_protobuf_dss_worker_real::EWorkerStatus & _status ){
+    switch( _status ){
+    case ::google_protobuf_dss_worker_real::EWorkerStatus::INITED : { return common_types::ENodeStatus::INITED; }
+    case ::google_protobuf_dss_worker_real::EWorkerStatus::PREPARING : { return common_types::ENodeStatus::PREPARING; }
+    case ::google_protobuf_dss_worker_real::EWorkerStatus::READY : { return common_types::ENodeStatus::READY; }
+    case ::google_protobuf_dss_worker_real::EWorkerStatus::ACTIVE : { return common_types::ENodeStatus::ACTIVE; }
+    case ::google_protobuf_dss_worker_real::EWorkerStatus::IDLE : { return common_types::ENodeStatus::IDLE; }
+    case ::google_protobuf_dss_worker_real::EWorkerStatus::CRASHED : { return common_types::ENodeStatus::CRASHED; }
+    default : {
+
+    }
+    }
+}
 
 CommandFactory::CommandFactory( common_types::SIncomingCommandServices & _commandServices )
     : m_commandServices(_commandServices)
@@ -36,7 +67,7 @@ PCommand CommandFactory::createCommand( PEnvironmentRequest _request ){
     if( '{' == msg[ 0 ] && '}' == msg[ msg.size() - 1 ] ){
         return parseExternalRequest( _request );
     }
-    if( false ){
+    else if( false ){
         return parseInternalRequest( _request );
     }
     else{
@@ -104,15 +135,99 @@ PCommand CommandFactory::parseExternalRequest( const PEnvironmentRequest & _requ
 
 PCommand CommandFactory::parseInternalRequest( const PEnvironmentRequest & _request ){
 
-    PCommand cmd;
+    static google_protobuf_dss_agent_real::MessageAgentRealToCoreRequest realAgent;
+    static google_protobuf_dss_agent_simula::MessageAgentSimulaToCoreRequest simulaAgent;
 
+    // from real agent(s)
+    if( realAgent.ParseFromString(_request->getIncomingMessage()) ){
+        PCommand cmd;
 
+        if( realAgent.has_msg_ping() ){
+            PCommandNodeAgentPing cmd1 = std::make_shared<CommandNodeAgentPing>( & m_commandServices );
 
+            const ::google_protobuf_dss_agent_real::MessageRequestPing & msgPing = realAgent.msg_ping();
 
+            const ::google_protobuf_dss_agent_real::MessageAgentPluginsInfo & pluginsInfo = msgPing.msg_plugins_info();
+            const ::google_protobuf_dss_agent_real::MessageAgentSystemInfo & sysInfo = msgPing.msg_system_info();
+            const ::google_protobuf_dss_agent_real::MessageAgentRunnedWorkers & runnedWorkers = msgPing.msg_runned_workers();
 
+            const int ramTotalMb = sysInfo.ram_total_mb();
 
-    cmd->m_request = _request;
-    return cmd;
+            for( int i = 0; i < pluginsInfo.real_plugins_info_size(); i++ ){
+                const ::google_protobuf_dss_agent_real::MessageAgentRealPlugin & realPluginInfo = pluginsInfo.real_plugins_info( i );
+
+                cmd1->m_stateFromRealAgent.physicModelNameAndCaps.insert( {realPluginInfo.real_plugin_name(), realPluginInfo.available_caps()} );
+            }
+
+            for( int i = 0; i < runnedWorkers.worker_states_size(); i++ ){
+                const ::google_protobuf_dss_worker_real::MessageWorkerState & workerStateFrom = runnedWorkers.worker_states( i );
+
+                common_types::SNodeWorkerRealState workerStateTo;
+                workerStateTo.id = "";
+                workerStateTo.agentId = workerStateFrom.agent_id();
+                workerStateTo.ctxId = workerStateFrom.ctx_id();
+                workerStateTo.availableCaps = workerStateFrom.available_caps();
+                workerStateTo.realObjectName = workerStateFrom.real_object_name();
+                workerStateTo.status = convertWorkerStatus( workerStateFrom.status() );
+                cmd1->m_stateFromRealAgent.nodeWorkers.push_back( workerStateTo );
+            }
+        }
+        else{
+            VS_LOG_WARN << PRINT_HEADER << " unknown msg type [" << realAgent.DebugString() << "]" << endl;
+            sendFailToExternal( _request, "I don't know such message type (-_-)" );
+            return nullptr;
+        }
+
+        cmd->m_request = _request;
+        return cmd;
+    }
+    // from simulation agent(s)
+    else if( simulaAgent.ParseFromString(_request->getIncomingMessage()) ){
+        PCommand cmd;
+
+        if( realAgent.has_msg_ping() ){
+            PCommandNodeAgentPing cmd1 = std::make_shared<CommandNodeAgentPing>( & m_commandServices );
+
+            const ::google_protobuf_dss_agent_simula::MessageRequestPing & msgPing = simulaAgent.msg_ping();
+
+            const ::google_protobuf_dss_agent_simula::MessageAgentPluginsInfo & pluginsInfo = msgPing.msg_plugins_info();
+            const ::google_protobuf_dss_agent_simula::MessageAgentSystemInfo & sysInfo = msgPing.msg_system_info();
+            const ::google_protobuf_dss_agent_simula::MessageAgentRunnedWorkers & runnedWorkers = msgPing.msg_runned_workers();
+
+            const int ramTotalMb = sysInfo.ram_total_mb();
+
+            for( int i = 0; i < pluginsInfo.physic_model_names_size(); i++ ){
+                const string & phmNameFrom = pluginsInfo.physic_model_names( i );
+
+                cmd1->m_stateFromSimulationAgent.physicModelNames.push_back( phmNameFrom );
+            }
+
+            for( int i = 0; i < runnedWorkers.worker_states_size(); i++ ){
+                const ::google_protobuf_dss_worker_simula::MessageWorkerState & workerStateFrom = runnedWorkers.worker_states( i );
+
+                common_types::SNodeWorkerSimulationState workerStateTo;
+                workerStateTo.id = "";
+                workerStateTo.agentId = workerStateFrom.agent_id();
+                workerStateTo.ctxId = workerStateFrom.ctx_id();
+                workerStateTo.realtime = workerStateFrom.in_realtime();
+                workerStateTo.status = convertWorkerStatus( workerStateFrom.status() );
+                cmd1->m_stateFromSimulationAgent.nodeWorkers.push_back( workerStateTo );
+            }
+        }
+        else{
+            VS_LOG_WARN << PRINT_HEADER << " unknown msg type [" << simulaAgent.DebugString() << "]" << endl;
+            sendFailToExternal( _request, "I don't know such message type (-_-)" );
+            return nullptr;
+        }
+
+        cmd->m_request = _request;
+        return cmd;
+    }
+    else{
+        VS_LOG_WARN << PRINT_HEADER << " unknown msg type [" << _request->getIncomingMessage() << "]" << endl;
+        sendFailToExternal( _request, "I don't know such msg type (-_-)" );
+        return nullptr;
+    }
 }
 
 void CommandFactory::sendFailToExternal( PEnvironmentRequest _request, const string _msg ){

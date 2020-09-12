@@ -33,14 +33,19 @@ public:
     virtual void removeObserver( common_types::IUserDispatcherObserver * _observer ) override;
 
     common_types::PUserState getUser( const common_types::TUserId & _userId );
-    common_types::TUserId registerUser( std::string _userIp, common_types::TPid _userPid );
+    common_types::TUserId registerUser( const std::string & _userIp, common_types::TPid _userPid );
     virtual bool isRegistered( const common_types::TUserId & _userId ) override;
 
 
 private:
+    // from ping
     void updateUserState( const common_types::SUserState & _state );
 
     void loadPreviousSessionActiveUsers();
+
+
+
+
 
     // data
     SState m_state;
@@ -50,12 +55,7 @@ private:
     std::vector<common_types::IUserDispatcherObserver *> m_observers;
 
 
-
-
     // service
-
-
-
 
 
 };

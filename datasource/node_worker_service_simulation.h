@@ -8,26 +8,19 @@ class NodeWorkerServiceSimula : public INodeMirror
 {
     friend class DispatcherNodeSimulation;
 public:
-    struct SConfigSimulation : INodeMirror::SConfiguration {
-        bool realtime;
-        // std::string capability; // only for real node
-        int64_t pollIntervalMillisec;
-    };
-
-    NodeWorkerServiceSimula( PNodeAgentFacilityForWorker _nodeAgent );
+    NodeWorkerServiceSimula( common_types::PNodeAgentFacilityForWorker _nodeAgent );
     ~NodeWorkerServiceSimula();
 
-    bool configure( const SConfigSimulation & _cfg );
+    bool configure( const common_types::SConfigSimulation & _cfg );
     const common_types::SNodeWorkerSimulationState & getState();
     virtual const common_types::SNodeState & getBaseState() override;
 
     virtual bool start() override;
     virtual bool pause() override;
-    virtual bool reset() override;
+    virtual bool stop() override;
 
     virtual void switchLivePlaying( bool _live ) override;
-
-    virtual void resetTime() override;
+    virtual void useRTI( bool _use ) override;
 
 
 private:
@@ -37,7 +30,7 @@ private:
     common_types::SNodeWorkerSimulationState m_state;
 
     // service
-    PNodeAgentFacilityForWorker m_nodeAgentFacility;
+    common_types::PNodeAgentFacilityForWorker m_nodeAgentFacility;
 
 
 };
